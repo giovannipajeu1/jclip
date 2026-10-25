@@ -9,7 +9,7 @@
 [![Java](https://img.shields.io/badge/Java-21_LTS-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](#)
 [![JavaFX](https://img.shields.io/badge/JavaFX-23-1F8AC0?style=for-the-badge)](#)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=for-the-badge)](LICENSE)
-[![Status](https://img.shields.io/badge/status-WIP-orange?style=for-the-badge)](#roadmap)
+[![Status](https://img.shields.io/badge/status-WIP-orange?style=for-the-badge)](#)
 
 </div>
 
@@ -38,15 +38,6 @@ No mundo macOS existem alternativas pagas (Paste, Alfred Clipboard, Raycast). O 
 | Testes | JUnit 5 + AssertJ + Mockito |
 | Format/Lint | Spotless (Google Java Format) |
 | CI | GitHub Actions |
-
-## 🗺️ Roadmap
-
-* [ ] **Fase 0, Fundação**: estrutura, deps, CI, docs ✅
-* [ ] **Fase 1, Core sem UI**: watcher do clipboard, SQLite, testes
-* [ ] **Fase 2, UI JavaFX**: janela flutuante com histórico e busca
-* [ ] **Fase 3, Integração macOS**: hotkey ⌘⇧V, menu bar icon, launch at login
-* [ ] **Fase 4, Features**: pin de favoritos, imagens/arquivos, preview, settings
-* [ ] **Fase 5, Distribuição**: `jpackage` para .app/.dmg, signing, notarização, releases
 
 ## 🚀 Build & Run (desenvolvimento)
 
