@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JClip — Clipboard history manager para macOS</title>
+<meta name="description" content="JClip: histórico de clipboard pra macOS, open source, feito em Java e JavaFX.">
+<style>
+  :root {
+    --bg: #f6f6f8;
+    --card: #ffffff;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --accent: #0a84ff;
+    --border: #e3e3e8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --card: #2c2c2e;
+      --text: #f2f2f7;
+      --muted: #98989f;
+      --accent: #0a84ff;
+      --border: #3a3a3c;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px;
+  }
+  .container { max-width: 720px; width: 100%; }
+  header { text-align: center; margin-bottom: 48px; }
+  h1 { font-size: 48px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .tagline { font-size: 20px; color: var(--muted); margin-bottom: 32px; }
+  .download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--accent);
+    color: #fff;
+    padding: 14px 32px;
+    font-size: 17px;
+    font-weight: 600;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    border: none;
+    cursor: pointer;
+  }
+  .download-btn:hover { opacity: 0.9; }
+  .download-btn:active { transform: scale(0.98); }
+  .download-btn.loading { opacity: 0.6; cursor: default; }
+  .version { font-size: 14px; color: var(--muted); margin-top: 12px; display: block; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .card h2 { font-size: 20px; margin-bottom: 12px; }
+  .card p, .card li { color: var(--muted); }
+  .card ul { padding-left: 20px; margin-top: 8px; }
+  .card li { margin-bottom: 6px; }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .feature {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .feature h3 { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .feature p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+  footer {
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    width: 100%;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  code {
+    background: var(--bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>JClip</h1>
+    <p class="tagline">Clipboard history manager pra macOS, open source.</p>
+    <a id="download" class="download-btn loading" href="#" aria-busy="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span id="download-label">Carregando...</span>
+    </a>
+    <span class="version" id="version"></span>
+  </header>
+
+  <div class="features-grid">
+    <div class="feature">
+      <h3>Histórico persistente</h3>
+      <p>Tudo que você copia fica salvo localmente num SQLite.</p>
+    </div>
+    <div class="feature">
+      <h3>Atalho global</h3>
+      <p>⌘⇧V abre a janela de qualquer app.</p>
+    </div>
+    <div class="feature">
+      <h3>Busca em tempo real</h3>
+      <p>Encontre qualquer coisa que já copiou.</p>
+    </div>
+    <div class="feature">
+      <h3>Vive na barra de menu</h3>
+      <p>Sem ocupar espaço no Dock.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Como usar</h2>
+    <ul>
+      <li>Baixe o <code>.dmg</code>, abra e arraste JClip pra <code>/Applications</code>.</li>
+      <li>Abra o app. O macOS vai pedir permissão de Acessibilidade pro Java.</li>
+      <li>Vá em <strong>Ajustes do Sistema &gt; Privacidade e Segurança &gt; Acessibilidade</strong> e ative o Java.</li>
+      <li>Pronto. Use ⌘⇧V em qualquer lugar pra abrir o histórico.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Requisitos</h2>
+    <p>macOS 12 Monterey ou superior, Apple Silicon ou Intel.</p>
+  </div>
+
+  <footer>
+    <p>
+      Feito por <a href="https://github.com/giovannipajeu1">Giovanni Pajeú</a>
+      · <a href="https://github.com/giovannipajeu1/jclip">Código no GitHub</a>
+      · Apache 2.0
+    </p>
+  </footer>
+</div>
+
+<script>
+(async function() {
+  const btn = document.getElementById('download');
+  const label = document.getElementById('download-label');
+  const versionEl = document.getElementById('version');
+
+  try {
+    const res = await fetch('https://api.github.com/repos/giovannipajeu1/jclip/releases/latest');
+    if (!res.ok) throw new Error('Release não encontrado');
+
+    const release = await res.json();
+    const dmg = release.assets.find(a => a.name.endsWith('.dmg'));
+
+    if (!dmg) throw new Error('Nenhum .dmg no release');
+
+    btn.href = dmg.browser_download_url;
+    btn.classList.remove('loading');
+    btn.removeAttribute('aria-busy');
+    label.textContent = 'Baixar para macOS';
+    versionEl.textContent = release.tag_name + ' · ' + Math.round(dmg.size / 1024 / 1024) + ' MB';
+  } catch (err) {
+    label.textContent = 'Em breve';
+    versionEl.textContent = 'Primeiro release ainda não publicado.';
+    btn.href = 'https://github.com/giovannipajeu1/jclip/releases';
+    btn.classList.remove('loading');
+  }
+})();
+</script>
+</body>
+</html>
