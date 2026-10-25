@@ -7,17 +7,16 @@ import org.junit.jupiter.api.Test;
 
 class ClipboardItemTest {
 
-    @Test
-    void deveSerVazioQuandoContentNulo() {
-        ClipboardItem item = new ClipboardItem(1L, null, Instant.now());
+  @Test
+  void deveSerVazioQuandoContentNulo() {
+    ClipboardItem item = new ClipboardItem(1L, null, Instant.now());
 
-        assertThat(item.isEmpty()).isTrue();
-    }
+    assertThat(item.isEmpty()).isTrue();
+  }
 
-    @Test
-    void deveSerVazioQuandoContentSoEspacos() {
-        ClipboardItem item = new ClipboardItem(1L, "   ", Instant.now());
-        assertThat(item.isEmpty()).isTrue();
-    }
+  @Test
+  void deveSerVazioQuandoContentSoEspacos() {
+    ClipboardItem item = new ClipboardItem(1L, "   ", Instant.now());
+    assertThat(item.isEmpty()).isTrue();
+  }
 }
-

@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-dmg:
+    name: Build .dmg
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+
+      - name: Extrair versão da tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build fat jar
+        run: mvn -B clean package -DskipTests
+
+      - name: Preparar input do jpackage
+        run: |
+          mkdir -p target/jpackage-input
+          cp target/jclip-fat.jar target/jpackage-input/
+
+      - name: Gerar .dmg via jpackage
+        run: |
+          jpackage \
+            --type dmg \
+            --name JClip \
+            --app-version ${{ steps.version.outputs.VERSION }} \
+            --input target/jpackage-input \
+            --main-jar jclip-fat.jar \
+            --main-class com.jclip.JClipApp \
+            --dest target/dist \
+            --mac-package-name JClip \
+            --vendor "Giovanni Pajeu" \
+            --copyright "Copyright 2026 Giovanni Pajeu"
+
+      - name: Renomear .dmg
+        run: mv target/dist/JClip-*.dmg target/dist/JClip-${{ steps.version.outputs.VERSION }}.dmg
+
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/dist/JClip-${{ steps.version.outputs.VERSION }}.dmg
+          generate_release_notes: true
+          name: JClip ${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ github.ref_name }}
