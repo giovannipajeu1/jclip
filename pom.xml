@@ -37,7 +37,6 @@
     </properties>
 
     <dependencies>
-        <!-- UI -->
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
@@ -49,7 +48,6 @@
             <version>${javafx.version}</version>
         </dependency>
 
-        <!-- Native macOS bindings -->
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
@@ -61,14 +59,12 @@
             <version>${jna.version}</version>
         </dependency>
 
-        <!-- Persistence -->
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>${sqlite.version}</version>
         </dependency>
 
-        <!-- Logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
@@ -80,7 +76,6 @@
             <version>${logback.version}</version>
         </dependency>
 
-        <!-- Tests -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
