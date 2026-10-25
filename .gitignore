@@ -1,0 +1,62 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# IDE — IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# IDE — VSCode
+.vscode/
+.classpath
+.project
+.settings/
+
+# IDE — Eclipse
+.metadata/
+bin/
+tmp/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+*.pid
+*.seed
+
+# SQLite local
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# JavaFX
+javafx-sdk/
+
+# jpackage output
+*.dmg
+*.app/
+dist/
+
+# Env
+.env
+.env.local
