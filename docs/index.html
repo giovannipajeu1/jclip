@@ -1,33 +1,29 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>JClip — Clipboard history manager para macOS</title>
-<meta name="description" content="Histórico de clipboard pra macOS, open source, grátis, feito em Java.">
-<meta property="og:title" content="JClip">
-<meta property="og:description" content="Histórico de clipboard pra macOS, open source.">
-<meta property="og:type" content="website">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JClip · Histórico de clipboard pro macOS</title>
+<meta name="description" content="Histórico de clipboard pro macOS. Local, open source, grátis.">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="color-scheme" content="dark">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
+    color-scheme: dark;
     --bg: #0a0a0a;
-    --bg-elevated: #121212;
-    --card: #141414;
-    --border: #1f1f1f;
-    --border-strong: #2a2a2a;
-    --text: #fafafa;
-    --text-muted: #a1a1aa;
-    --text-subtle: #71717a;
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --accent-glow: rgba(59, 130, 246, 0.15);
-    --gradient-text: linear-gradient(135deg, #fafafa 0%, #a1a1aa 100%);
-    --gradient-accent: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    --bg-raised: #0f0f0f;
+    --fg: #ededed;
+    --fg-dim: #8a8a8a;
+    --fg-soft: #5a5a5a;
+    --line: #1c1c1c;
+    --line-strong: #262626;
+    --sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+    --max: 1120px;
+    --gutter: clamp(20px, 4vw, 48px);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -35,698 +31,575 @@
   html { scroll-behavior: smooth; }
 
   body {
-    font-family: var(--font-sans);
     background: var(--bg);
-    color: var(--text);
-    line-height: 1.6;
-    min-height: 100vh;
+    color: var(--fg);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
 
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.04) 1px, transparent 0);
-    background-size: 24px 24px;
-    pointer-events: none;
-    z-index: 0;
-  }
+  a { color: inherit; text-decoration: none; }
 
-  .glow {
-    position: fixed;
-    top: -200px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 800px;
-    height: 500px;
-    background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 60%);
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  .container {
-    max-width: 1100px;
+  .wrap {
+    max-width: var(--max);
     margin: 0 auto;
-    padding: 0 24px;
-    position: relative;
-    z-index: 1;
+    padding: 0 var(--gutter);
   }
 
   nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 24px 0;
+    padding: 20px var(--gutter);
+    background: rgba(10, 10, 10, 0.85);
+    backdrop-filter: saturate(180%) blur(8px);
+    border-bottom: 1px solid var(--line);
+    max-width: var(--max);
+    margin: 0 auto;
   }
 
-  .logo {
+  .brand {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-weight: 700;
-    font-size: 17px;
-    letter-spacing: -0.01em;
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
   }
 
-  .logo-mark {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
-    background: var(--gradient-accent);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 800;
-    font-size: 15px;
+  .brand::before {
+    content: '';
+    width: 20px;
+    height: 20px;
+    background: var(--fg);
+    display: inline-block;
+    mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'><path d='M9 2a2 2 0 0 0-2 2H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2a2 2 0 0 0-2-2H9zm0 2h6v2h2v15H5V6h2V4h2z'/></svg>") no-repeat center / contain;
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'><path d='M9 2a2 2 0 0 0-2 2H5a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-2a2 2 0 0 0-2-2H9zm0 2h6v2h2v15H5V6h2V4h2z'/></svg>") no-repeat center / contain;
   }
 
-  .nav-links {
+  .nav-right {
     display: flex;
     align-items: center;
     gap: 24px;
+    font-size: 14px;
   }
 
-  .nav-links a {
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
+  .nav-right a {
+    color: var(--fg-dim);
     transition: color 0.15s;
   }
 
-  .nav-links a:hover { color: var(--text); }
-
-  .nav-github {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    background: var(--card);
-    border: 1px solid var(--border-strong);
-    border-radius: 8px;
-    color: var(--text) !important;
-  }
-
-  .nav-github:hover { background: var(--bg-elevated); }
+  .nav-right a:hover { color: var(--fg); }
 
   .hero {
-    padding: 80px 0 60px;
-    text-align: center;
+    padding: 96px 0 72px;
+    text-align: left;
   }
 
-  .badge {
+  .pill {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 14px;
-    background: var(--card);
-    border: 1px solid var(--border-strong);
-    border-radius: 100px;
-    font-size: 13px;
-    color: var(--text-muted);
-    margin-bottom: 28px;
-    font-weight: 500;
+    gap: 10px;
+    padding: 6px 12px;
+    border: 1px solid var(--line-strong);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-dim);
+    margin-bottom: 32px;
   }
 
-  .badge-dot {
+  .pill-dot {
     width: 6px;
     height: 6px;
-    border-radius: 50%;
-    background: #22c55e;
-    box-shadow: 0 0 10px #22c55e;
+    background: #d4d4d4;
+    display: inline-block;
   }
 
   h1 {
-    font-size: clamp(44px, 7vw, 80px);
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-    margin-bottom: 24px;
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+    font-family: var(--sans);
+    font-size: clamp(40px, 7vw, 80px);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1;
+    max-width: 14ch;
+    margin-bottom: 28px;
   }
 
-  h1 .accent {
-    background: var(--gradient-accent);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
+  h1 .dim { color: var(--fg-dim); }
 
-  .tagline {
-    font-size: clamp(16px, 2vw, 20px);
-    color: var(--text-muted);
-    max-width: 580px;
-    margin: 0 auto 40px;
+  .lead {
+    font-size: clamp(16px, 2vw, 19px);
+    color: var(--fg-dim);
+    max-width: 54ch;
     line-height: 1.5;
+    margin-bottom: 36px;
   }
 
-  .cta-row {
+  .cta {
     display: flex;
-    gap: 12px;
-    justify-content: center;
+    gap: 10px;
     flex-wrap: wrap;
-    margin-bottom: 20px;
+    align-items: center;
   }
 
   .btn {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    padding: 14px 24px;
-    font-family: var(--font-sans);
-    font-size: 15px;
-    font-weight: 600;
-    text-decoration: none;
-    border-radius: 10px;
-    border: none;
+    padding: 11px 18px;
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 500;
     cursor: pointer;
+    border: 1px solid transparent;
     transition: all 0.15s;
+    text-decoration: none;
   }
 
   .btn-primary {
-    background: var(--text);
+    background: var(--fg);
     color: var(--bg);
+    border-color: var(--fg);
   }
 
-  .btn-primary:hover {
-    background: #e5e5e5;
-    transform: translateY(-1px);
+  .btn-primary:hover { background: #ffffff; border-color: #ffffff; }
+
+  .btn-primary.loading { opacity: 0.4; pointer-events: none; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--fg);
+    border-color: var(--line-strong);
   }
 
-  .btn-primary.loading {
-    opacity: 0.5;
-    cursor: default;
-    pointer-events: none;
-  }
+  .btn-ghost:hover { border-color: var(--fg-dim); }
 
-  .btn-secondary {
-    background: var(--card);
-    color: var(--text);
-    border: 1px solid var(--border-strong);
-  }
-
-  .btn-secondary:hover {
-    background: var(--bg-elevated);
-    border-color: #3a3a3a;
-  }
-
-  .version-meta {
-    font-size: 13px;
-    color: var(--text-subtle);
-    font-family: var(--font-mono);
+  .meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-soft);
+    margin-top: 20px;
   }
 
   .showcase {
-    margin: 60px auto 0;
-    max-width: 820px;
-    position: relative;
+    margin: 80px auto 0;
+    max-width: 760px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-raised);
   }
 
-  .showcase::before {
-    content: '';
-    position: absolute;
-    inset: -40px;
-    background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 70%);
-    pointer-events: none;
-  }
-
-  .window {
-    position: relative;
-    background: var(--card);
-    border: 1px solid var(--border-strong);
-    border-radius: 14px;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
-  }
-
-  .window-header {
+  .showcase-head {
     display: flex;
     align-items: center;
-    gap: 7px;
-    padding: 12px 14px;
-    background: #1a1a1a;
-    border-bottom: 1px solid var(--border);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-soft);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
   }
 
-  .window-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
+  .showcase-head .dots {
+    display: flex;
+    gap: 6px;
+    margin-right: 14px;
   }
 
-  .window-dot.red { background: #ff5f57; }
-  .window-dot.yellow { background: #febc2e; }
-  .window-dot.green { background: #28c840; }
-
-  .window-body {
-    padding: 20px;
+  .showcase-head .dots span {
+    width: 10px;
+    height: 10px;
+    background: #333;
+    display: inline-block;
   }
 
-  .mock-title {
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 14px;
+  .showcase-body {
+    padding: 24px;
   }
 
-  .mock-search {
+  .mock-field {
     width: 100%;
     padding: 9px 12px;
     background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: var(--text-muted);
+    border: 1px solid var(--line);
+    color: var(--fg-dim);
+    font-family: var(--sans);
     font-size: 13px;
-    font-family: var(--font-sans);
     margin-bottom: 14px;
   }
 
-  .mock-item {
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 13px;
-    margin-bottom: 4px;
-    color: var(--text-muted);
+  .mock-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .mock-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--fg-dim);
+    gap: 12px;
+    font-family: var(--mono);
+    border: 1px solid transparent;
   }
 
-  .mock-item.selected {
-    background: var(--accent);
-    color: #fff;
+  .mock-row.active {
+    background: var(--bg);
+    border-color: var(--line-strong);
+    color: var(--fg);
   }
 
-  .mock-item .mock-time {
-    margin-left: auto;
+  .mock-row .mock-text {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .mock-row .mock-time {
     font-size: 11px;
-    opacity: 0.6;
-    font-family: var(--font-mono);
+    color: var(--fg-soft);
   }
 
   section {
-    padding: 80px 0;
+    padding: 96px 0;
+    border-top: 1px solid var(--line);
   }
 
-  .section-header {
-    text-align: center;
+  .section-top {
     margin-bottom: 56px;
+    max-width: 640px;
   }
 
-  .section-eyebrow {
-    display: inline-block;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--accent);
-    margin-bottom: 12px;
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-soft);
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    margin-bottom: 14px;
   }
 
   h2 {
-    font-size: clamp(28px, 4vw, 40px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    font-size: clamp(26px, 3.6vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
     margin-bottom: 14px;
-    background: var(--gradient-text);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
   }
 
-  .section-sub {
-    color: var(--text-muted);
+  .section-top p {
+    color: var(--fg-dim);
     font-size: 16px;
-    max-width: 540px;
-    margin: 0 auto;
+    line-height: 1.5;
+    max-width: 56ch;
   }
 
   .features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 16px;
+    border: 1px solid var(--line-strong);
   }
 
   .feature {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
     padding: 28px 24px;
-    transition: border-color 0.2s;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
   }
 
-  .feature:hover { border-color: var(--border-strong); }
+  .feature:nth-child(3n) { border-right: none; }
+  .feature:nth-last-child(-n+3) { border-bottom: none; }
 
-  .feature-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    background: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent);
-    margin-bottom: 18px;
+  @media (max-width: 820px) {
+    .feature { border-right: none; border-bottom: 1px solid var(--line); }
+    .feature:last-child { border-bottom: none; }
+  }
+
+  .feature-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-soft);
+    letter-spacing: 0.1em;
+    margin-bottom: 20px;
   }
 
   .feature h3 {
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
   }
 
   .feature p {
+    color: var(--fg-dim);
     font-size: 14px;
-    color: var(--text-muted);
-    line-height: 1.55;
+    line-height: 1.5;
   }
 
-  .install-section {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 40px;
-    max-width: 720px;
-    margin: 0 auto;
+  .install {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    border: 1px solid var(--line-strong);
   }
 
-  .install-steps {
-    display: flex;
-    flex-direction: column;
+  .install-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    padding: 24px;
+    border-bottom: 1px solid var(--line);
+    align-items: baseline;
     gap: 20px;
   }
 
-  .install-step {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-  }
+  .install-row:last-child { border-bottom: none; }
 
-  .step-num {
-    flex-shrink: 0;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--bg);
-    border: 1px solid var(--border-strong);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  .install-row .n {
+    font-family: var(--mono);
     font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    font-family: var(--font-mono);
+    color: var(--fg-soft);
   }
 
-  .step-content {
-    flex: 1;
-    padding-top: 2px;
+  .install-row .t {
     font-size: 15px;
-    color: var(--text);
+    line-height: 1.55;
   }
 
-  .step-content strong { color: var(--text); font-weight: 600; }
-
-  .step-content .path {
-    display: inline-block;
-    padding: 2px 7px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    font-family: var(--font-mono);
+  code, .code {
+    font-family: var(--mono);
     font-size: 13px;
-    color: var(--text-muted);
+    padding: 1px 6px;
+    background: var(--bg-raised);
+    border: 1px solid var(--line);
+    color: var(--fg);
   }
 
   kbd {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 3px 8px;
-    background: var(--bg);
-    border: 1px solid var(--border-strong);
-    border-bottom-width: 2px;
-    border-radius: 6px;
-    font-family: var(--font-mono);
+    min-width: 22px;
+    padding: 1px 6px;
+    font-family: var(--mono);
     font-size: 12px;
-    font-weight: 600;
-    color: var(--text);
-    min-width: 24px;
+    font-weight: 500;
+    background: var(--bg-raised);
+    border: 1px solid var(--line-strong);
+    color: var(--fg);
   }
 
   .shortcut {
     display: inline-flex;
-    gap: 4px;
+    gap: 3px;
     align-items: center;
+    margin: 0 2px;
   }
 
   footer {
-    border-top: 1px solid var(--border);
-    padding: 40px 0 60px;
-    margin-top: 40px;
-  }
-
-  .footer-content {
+    padding: 32px var(--gutter);
+    border-top: 1px solid var(--line);
+    max-width: var(--max);
+    margin: 0 auto;
     display: flex;
     justify-content: space-between;
-    align-items: center;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 16px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-soft);
   }
 
-  .footer-left {
-    font-size: 13px;
-    color: var(--text-subtle);
+  footer a {
+    color: var(--fg-dim);
+    transition: color 0.15s;
   }
 
-  .footer-left a {
-    color: var(--text-muted);
-    text-decoration: none;
-  }
+  footer a:hover { color: var(--fg); }
 
-  .footer-left a:hover { color: var(--text); }
-
-  .footer-right {
+  footer .links {
     display: flex;
     gap: 20px;
-    font-size: 13px;
   }
-
-  .footer-right a {
-    color: var(--text-subtle);
-    text-decoration: none;
-  }
-
-  .footer-right a:hover { color: var(--text); }
 
   @media (max-width: 640px) {
-    .nav-links a:not(.nav-github) { display: none; }
-    .hero { padding: 40px 0 30px; }
-    section { padding: 50px 0; }
-    .install-section { padding: 24px; }
+    .nav-right a:not(.nav-github) { display: none; }
+    .hero { padding: 48px 0 32px; }
+    section { padding: 56px 0; }
+    .showcase { margin-top: 48px; }
   }
 </style>
 </head>
 <body>
 
-<div class="glow"></div>
-
-<div class="container">
-
 <nav>
-  <a href="#" class="logo">
-    <div class="logo-mark">J</div>
-    <span>JClip</span>
-  </a>
-  <div class="nav-links">
-    <a href="#features">Recursos</a>
-    <a href="#install">Instalar</a>
-    <a href="https://github.com/giovannipajeu1/jclip" class="nav-github">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8 0 3.2.9.8 1.3 1.9 1.3 3.1 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1 .9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0 0 12 .3"/></svg>
-      <span>Star</span>
-    </a>
+  <a href="#" class="brand">jclip</a>
+  <div class="nav-right">
+    <a href="#recursos">Recursos</a>
+    <a href="#instalar">Instalar</a>
+    <a href="https://github.com/giovannipajeu1/jclip" class="nav-github">GitHub</a>
   </div>
 </nav>
 
-<section class="hero">
-  <div class="badge">
-    <span class="badge-dot"></span>
-    <span>Open source · Apache 2.0</span>
-  </div>
-  <h1>Histórico de<br>clipboard pro <span class="accent">macOS</span>.</h1>
-  <p class="tagline">
-    Tudo que você copia fica salvo. Busca rápida, atalho global, vive na barra de menu.
-    Sem nuvem, sem conta, sem telemetria.
-  </p>
-  <div class="cta-row">
-    <a id="download" class="btn btn-primary loading" href="#">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      <span id="download-label">Carregando...</span>
-    </a>
-    <a href="https://github.com/giovannipajeu1/jclip" class="btn btn-secondary">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.9 1.2 1.9 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8 0 3.2.9.8 1.3 1.9 1.3 3.1 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1 .9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0 0 12 .3"/></svg>
-      Ver no GitHub
-    </a>
-  </div>
-  <div class="version-meta" id="version">macOS 12+ · Apple Silicon e Intel</div>
+<main class="wrap">
 
-  <div class="showcase">
-    <div class="window">
-      <div class="window-header">
-        <div class="window-dot red"></div>
-        <div class="window-dot yellow"></div>
-        <div class="window-dot green"></div>
-      </div>
-      <div class="window-body">
-        <div class="mock-title">Clipboard</div>
-        <div class="mock-search">Buscar...</div>
-        <div class="mock-item selected">
-          <span>feat(cicd): CI com testes, CD gera .dmg...</span>
-          <span class="mock-time">agora</span>
-        </div>
-        <div class="mock-item">
-          <span>https://github.com/giovannipajeu1/jclip</span>
-          <span class="mock-time">2 min</span>
-        </div>
-        <div class="mock-item">
-          <span>SELECT id, content, copied_at FROM clipboard_history</span>
-          <span class="mock-time">5 min</span>
-        </div>
-        <div class="mock-item">
-          <span>mvn clean package -DskipTests</span>
-          <span class="mock-time">8 min</span>
-        </div>
-        <div class="mock-item">
-          <span>giovannipajeu@gmail.com</span>
-          <span class="mock-time">12 min</span>
-        </div>
-      </div>
-    </div>
+<section class="hero">
+  <div class="pill">
+    <span class="pill-dot"></span>
+    <span>v0.1 · apache 2.0</span>
   </div>
+
+  <h1>Histórico de clipboard<br><span class="dim">pro macOS.</span></h1>
+
+  <p class="lead">
+    Tudo que você copia fica salvo localmente. Busca rápida, atalho global, vive na barra de menu. Sem nuvem, sem conta, sem telemetria.
+  </p>
+
+  <div class="cta">
+    <a id="download" class="btn btn-primary loading" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" stroke-linejoin="miter">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span id="download-label">Carregando</span>
+    </a>
+    <a href="https://github.com/giovannipajeu1/jclip" class="btn btn-ghost">Código no GitHub</a>
+  </div>
+
+  <p class="meta" id="meta">macOS 12+ · apple silicon &amp; intel</p>
 </section>
 
-<section id="features">
-  <div class="section-header">
-    <span class="section-eyebrow">Recursos</span>
-    <h2>Simples, rápido, local.</h2>
-    <p class="section-sub">
-      Feito pra ficar fora do caminho. Abre em um atalho, some quando você clica fora.
+<div class="showcase">
+  <div class="showcase-head">
+    <div class="dots"><span></span><span></span><span></span></div>
+    <span>jclip</span>
+  </div>
+  <div class="showcase-body">
+    <input class="mock-field" type="text" placeholder="Buscar..." readonly>
+    <div class="mock-list">
+      <div class="mock-row active">
+        <span class="mock-text">lorem ipsum dolor sit amet</span>
+        <span class="mock-time">agora</span>
+      </div>
+      <div class="mock-row">
+        <span class="mock-text">https://example.com/docs</span>
+        <span class="mock-time">1m</span>
+      </div>
+      <div class="mock-row">
+        <span class="mock-text">const total = items.reduce((a, b) =&gt; a + b, 0)</span>
+        <span class="mock-time">3m</span>
+      </div>
+      <div class="mock-row">
+        <span class="mock-text">a quick brown fox jumps over the lazy dog</span>
+        <span class="mock-time">7m</span>
+      </div>
+      <div class="mock-row">
+        <span class="mock-text">rua das acácias, 1200, apto 304</span>
+        <span class="mock-time">15m</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="recursos">
+  <div class="section-top">
+    <p class="eyebrow">Recursos</p>
+    <h2>O essencial. Nada mais.</h2>
+    <p>
+      Feito pra ficar fora do caminho. Aperta um atalho, achou, fechou. Nenhuma configuração necessária pra funcionar.
     </p>
   </div>
+
   <div class="features">
     <div class="feature">
-      <div class="feature-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </div>
+      <p class="feature-num">01</p>
       <h3>Histórico persistente</h3>
-      <p>Tudo salvo localmente num SQLite. Sobrevive a reboot, logout e crash.</p>
+      <p>Tudo salvo em SQLite local. Sobrevive a reboot, logout e crash.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M7 16h10"/></svg>
-      </div>
+      <p class="feature-num">02</p>
       <h3>Atalho global</h3>
-      <p>Aperta <span class="shortcut"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd></span> de qualquer app pra abrir.</p>
+      <p><span class="shortcut"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd></span> abre a janela de qualquer app ativo.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      </div>
-      <h3>Busca em tempo real</h3>
-      <p>Digite qualquer coisa e filtra na hora. Achou? Duplo clique copia.</p>
+      <p class="feature-num">03</p>
+      <h3>Busca instantânea</h3>
+      <p>Digita qualquer coisa, filtra na hora. Duplo clique copia.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="4" rx="1"/><line x1="7" y1="5" x2="7.01" y2="5"/><line x1="11" y1="5" x2="11.01" y2="5"/><line x1="15" y1="5" x2="15.01" y2="5"/></svg>
-      </div>
+      <p class="feature-num">04</p>
       <h3>Vive na barra de menu</h3>
-      <p>Sem ocupar espaço no Dock. Discreto, do jeito que um app assim deve ser.</p>
+      <p>Sem ocupar espaço no Dock. Discreto, do jeito que deveria ser.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      </div>
+      <p class="feature-num">05</p>
       <h3>100% local</h3>
-      <p>Zero rede. Seu clipboard nunca sai da sua máquina.</p>
+      <p>Zero rede, zero telemetria. Seu clipboard nunca sai da máquina.</p>
     </div>
     <div class="feature">
-      <div class="feature-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      </div>
-      <h3>Código aberto</h3>
+      <p class="feature-num">06</p>
+      <h3>Open source</h3>
       <p>Java 21 + JavaFX. Audite, modifique, contribua. Apache 2.0.</p>
     </div>
   </div>
 </section>
 
-<section id="install">
-  <div class="section-header">
-    <span class="section-eyebrow">Instalação</span>
+<section id="instalar">
+  <div class="section-top">
+    <p class="eyebrow">Instalação</p>
     <h2>Rodando em 1 minuto.</h2>
   </div>
-  <div class="install-section">
-    <div class="install-steps">
-      <div class="install-step">
-        <div class="step-num">1</div>
-        <div class="step-content">
-          Baixa o <span class="path">.dmg</span>, abre e arrasta o JClip pra <span class="path">/Applications</span>.
-        </div>
-      </div>
-      <div class="install-step">
-        <div class="step-num">2</div>
-        <div class="step-content">
-          Abre o app. O macOS vai pedir permissão de <strong>Acessibilidade</strong> pro Java.
-        </div>
-      </div>
-      <div class="install-step">
-        <div class="step-num">3</div>
-        <div class="step-content">
-          Vai em <strong>Ajustes do Sistema &gt; Privacidade e Segurança &gt; Acessibilidade</strong> e ativa o Java.
-        </div>
-      </div>
-      <div class="install-step">
-        <div class="step-num">4</div>
-        <div class="step-content">
-          Pronto. Usa <span class="shortcut"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd></span> em qualquer lugar pra abrir o histórico.
-        </div>
-      </div>
+</section>
+
+  <div class="install">
+    <div class="install-row">
+      <span class="n">01</span>
+      <span class="t">Baixa o <code>.dmg</code>, abre e arrasta o JClip pra <code>/Applications</code>.</span>
+    </div>
+    <div class="install-row">
+      <span class="n">02</span>
+      <span class="t">Abre o app. O macOS vai pedir permissão de Acessibilidade pro Java.</span>
+    </div>
+    <div class="install-row">
+      <span class="n">03</span>
+      <span class="t">Em <code>Ajustes do Sistema &gt; Privacidade e Segurança &gt; Acessibilidade</code>, ativa o Java.</span>
+    </div>
+    <div class="install-row">
+      <span class="n">04</span>
+      <span class="t">Usa <span class="shortcut"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>V</kbd></span> em qualquer lugar pra abrir o histórico.</span>
     </div>
   </div>
 </section>
 
+</main>
+
 <footer>
-  <div class="footer-content">
-    <div class="footer-left">
-      Feito por <a href="https://github.com/giovannipajeu1">Giovanni Pajeú</a> em São Tomé das Letras, MG.
-    </div>
-    <div class="footer-right">
-      <a href="https://github.com/giovannipajeu1/jclip">GitHub</a>
-      <a href="https://github.com/giovannipajeu1/jclip/releases">Releases</a>
-      <a href="https://github.com/giovannipajeu1/jclip/issues">Issues</a>
-      <a href="https://github.com/giovannipajeu1/jclip/blob/main/LICENSE">Licença</a>
-    </div>
+  <div>jclip · open source clipboard history manager</div>
+  <div class="links">
+    <a href="https://github.com/giovannipajeu1/jclip">GitHub</a>
+    <a href="https://github.com/giovannipajeu1/jclip/releases">Releases</a>
+    <a href="https://github.com/giovannipajeu1/jclip/issues">Issues</a>
+    <a href="https://github.com/giovannipajeu1/jclip/blob/main/LICENSE">Apache 2.0</a>
   </div>
 </footer>
-
-</div>
 
 <script>
 (async function() {
   const btn = document.getElementById('download');
   const label = document.getElementById('download-label');
-  const versionEl = document.getElementById('version');
+  const meta = document.getElementById('meta');
 
   try {
     const res = await fetch('https://api.github.com/repos/giovannipajeu1/jclip/releases/latest');
     if (!res.ok) throw new Error('no release');
-
     const release = await res.json();
     const dmg = release.assets.find(a => a.name.endsWith('.dmg'));
     if (!dmg) throw new Error('no dmg');
@@ -736,12 +609,12 @@
     label.textContent = 'Baixar para macOS';
 
     const sizeMB = Math.round(dmg.size / 1024 / 1024);
-    versionEl.textContent = `${release.tag_name} · ${sizeMB} MB · macOS 12+`;
+    meta.textContent = release.tag_name + ' · ' + sizeMB + ' MB · macOS 12+';
   } catch (err) {
     label.textContent = 'Em breve';
     btn.href = 'https://github.com/giovannipajeu1/jclip/releases';
     btn.classList.remove('loading');
-    versionEl.textContent = 'Primeiro release ainda não publicado.';
+    meta.textContent = 'primeiro release ainda não publicado · macOS 12+';
   }
 })();
 </script>
