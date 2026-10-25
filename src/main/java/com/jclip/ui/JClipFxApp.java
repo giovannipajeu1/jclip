@@ -2,9 +2,12 @@ package com.jclip.ui;
 
 import com.jclip.core.ClipboardItem;
 import com.jclip.core.ClipboardWatcher;
+import com.jclip.platform.GlobalHotkey;
+import com.jclip.platform.MenuBarIcon;
 import com.jclip.storage.HistoryRepository;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -29,9 +32,15 @@ public class JClipFxApp extends Application {
     private HistoryRepository repo;
     private ObservableList<ClipboardItem> allItems;
     private ClipboardWatcher watcher;
+    private GlobalHotkey hotkey;
+    private MenuBarIcon trayIcon;
+    private Stage primaryStage;
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage stage) throws Exception {
+        this.primaryStage = stage;
+        Platform.setImplicitExit(false);
+
         repo = new HistoryRepository();
         allItems = FXCollections.observableArrayList(repo.listAll());
 
@@ -57,6 +66,7 @@ public class JClipFxApp extends Application {
                 ClipboardItem selected = listView.getSelectionModel().getSelectedItem();
                 if (selected != null) {
                     copyToClipboard(selected.content());
+                    stage.hide();
                 }
             }
         });
@@ -66,8 +76,8 @@ public class JClipFxApp extends Application {
         emptyState.setAlignment(Pos.CENTER);
 
         StackPane listContainer = new StackPane(listView, emptyState);
-        emptyState.visibleProperty().bind(javafx.beans.binding.Bindings.isEmpty(allItems));
-        listView.visibleProperty().bind(javafx.beans.binding.Bindings.isNotEmpty(allItems));
+        emptyState.visibleProperty().bind(Bindings.isEmpty(allItems));
+        listView.visibleProperty().bind(Bindings.isNotEmpty(allItems));
 
         VBox root = new VBox(6, title, searchField, listContainer);
         root.setPadding(new Insets(16));
@@ -75,17 +85,79 @@ public class JClipFxApp extends Application {
 
         Scene scene = new Scene(root, 360, 480);
         scene.getStylesheets().add(getClass().getResource("/styles/jclip.css").toExternalForm());
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("JClip");
-        primaryStage.show();
 
-        startWatcher();
-
-        primaryStage.setOnCloseRequest(e -> {
-            if (watcher != null) {
-                watcher.stop();
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                stage.hide();
             }
         });
+
+        stage.setScene(scene);
+        stage.setTitle("JClip");
+
+        stage.setOnCloseRequest(e -> {
+            e.consume();
+            stage.hide();
+        });
+
+        stage.show();
+        stage.toFront();
+        stage.requestFocus();
+
+        startWatcher();
+        installTray();
+        installHotkey();
+    }
+
+    private void installHotkey() {
+        hotkey = new GlobalHotkey(() -> Platform.runLater(this::toggleWindow));
+        Thread t = new Thread(() -> {
+            try {
+                hotkey.register();
+            } catch (Exception e) {
+                System.err.println("Falha ao registrar hotkey global. Dê permissão de Acessibilidade pro Java em Ajustes do Sistema > Privacidade e Segurança > Acessibilidade.");
+                e.printStackTrace();
+            }
+        }, "hotkey-register");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private void installTray() {
+        java.awt.EventQueue.invokeLater(() -> {
+            trayIcon = new MenuBarIcon(
+                    () -> Platform.runLater(this::showWindow),
+                    () -> Platform.runLater(this::quit)
+            );
+            try {
+                trayIcon.install();
+            } catch (Exception e) {
+                System.err.println("Não foi possível criar ícone na barra de menu.");
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void toggleWindow() {
+        if (primaryStage.isShowing()) {
+            primaryStage.hide();
+        } else {
+            showWindow();
+        }
+    }
+
+    private void showWindow() {
+        primaryStage.show();
+        primaryStage.toFront();
+        primaryStage.requestFocus();
+    }
+
+    private void quit() {
+        if (watcher != null) watcher.stop();
+        if (hotkey != null) hotkey.unregister();
+        if (trayIcon != null) trayIcon.remove();
+        Platform.exit();
+        System.exit(0);
     }
 
     private void startWatcher() {
